@@ -1,38 +1,50 @@
 # Playwright TS Automation
 
-A TypeScript-based end-to-end test automation framework built with [Playwright](https://playwright.dev), combining native Playwright Test with Cucumber (BDD) support. This project is intended as a demonstration of automation engineering practices — page object structure, CI/CD integration, and reporting — across a range of public practice sites.
+A TypeScript-based UI test automation framework built with [Playwright](https://playwright.dev), using the Page Object Model. Covers practice/demo sites as a working demonstration of framework structure, locator strategy, and test design.
 
 ## Overview
 
-This framework covers automated UI test coverage for:
-- [the-internet.herokuapp.com](https://the-internet.herokuapp.com) — classic UI test scenarios (forms, alerts, dynamic content, etc.)
-- [demoqa.com](https://demoqa.com) — widget and component-heavy interactions
-- [rahulshettyacademy.com](https://rahulshettyacademy.com) — practice site and ShopClient end-to-end purchase flow
+Current test coverage:
+- **rahulshettyacademy.com** — login practice page (form controls, child window handling), Angular practice page (form controls with special locators), and client login flow (UI login — happy and sad path)
+- **Locator/timeout technique demos** — special locators and custom `expect` timeout configuration
+
+BDD (Cucumber), full multi-site coverage (the-internet.herokuapp.com, demoqa.com), and CI/CD pipelines are planned — see [Roadmap](#roadmap).
 
 ## Tech Stack
 
 - **Language:** TypeScript
 - **Test Runner:** Playwright Test
-- **BDD:** Cucumber (`@cucumber/cucumber`)
-- **CI/CD:** GitHub Actions, Jenkins
-- **Hosting/Execution:** AWS (parallel test execution)
 
 ## Project Structure
 
 ```
 playwright-ts-automation/
-├── tests/                  # Native Playwright Test specs
-├── features/               # Cucumber feature files (Gherkin)
-├── step-definitions/       # Cucumber step implementations
-├── pages/                  # Page Object Model classes
-├── utils/                  # Shared helpers/utilities
-├── playwright.config.ts    # Playwright configuration
-├── cucumber.js             # Cucumber configuration
+├── pages/
+│   └── LoginPage.ts
+├── test-data/
+│   └── login-data.ts
+├── tests/
+│   ├── example.spec.ts                    # Playwright scaffold smoke test — kept as a quick
+│   │                                       # sanity check that install/config work after
+│   │                                       # upgrading libraries or tooling
+│   ├── timeouts.spec.ts                   # Special locators, custom expect timeout demo
+│   └── rahulshetty/
+│       ├── login.spec.ts                  # Client app login — UI happy + sad path
+│       ├── login-practice-controls.ts     # (!) see note below
+│       ├── login-practice-child-window.spec.ts
+│       └── angular-practice.spec.ts
+├── global-setup.ts
+├── .env.example
+├── .gitignore
+├── playwright.config.ts
 ├── package.json
+├── tsconfig.json
 └── README.md
 ```
 
-> Adjust this tree to match your actual folder layout as the project evolves.
+> **(!)** `login-practice-controls.ts` is missing the `.spec` suffix required for Playwright's default test
+> discovery — it won't currently be picked up by `npx playwright test`. Rename to
+> `login-practice-controls.spec.ts` if this is meant to run as a test file.
 
 ## Setup
 
@@ -73,38 +85,46 @@ npx playwright install --with-deps
 > run `npx playwright install --with-deps` (or `sudo npx playwright install-deps` if browsers are already
 > installed) to pull in the missing OS dependencies. This typically won't happen on a standard desktop OS.
 
+### Environment variables
+
+The login test (`tests/rahulshetty/login.spec.ts`) and `global-setup.ts` require a test account for `rahulshettyacademy.com/client`. Copy `.env.example` to `.env` and fill in real values:
+
+```bash
+cp .env.example .env
+```
+
+```
+TEST_USER_EMAIL=your-test-account@example.com
+TEST_USER_PASSWORD=your-password
+```
+
+`.env` is git-ignored and never committed — see `.env.example` for the required keys only.
+
 ## Running Tests
 
-### Native Playwright tests
-
-Run the full suite (headless by default):
+### Run the full suite (headless by default)
 ```bash
 npx playwright test
 ```
 
-Run a single test file:
+### Run a single test file
 ```bash
-npx playwright test tests/example.spec.ts
+npx playwright test tests/rahulshetty/login.spec.ts
 ```
 
-Run a single test by name (matches the test title):
+### Run a single test by name
 ```bash
-npx playwright test -g "has title"
+npx playwright test -g "logs in successfully"
 ```
 
-Run on a specific browser/project:
+### Run on a specific browser/project
 ```bash
 npx playwright test --project=chromium
 npx playwright test --project=firefox
 npx playwright test --project=webkit
 ```
 
-Combine flags — e.g. a single test, on one browser, headless (explicit):
-```bash
-npx playwright test tests/example.spec.ts --project=chromium --headed=false
-```
-
-Run in headed mode (requires a display — see note below):
+### Run in headed mode (requires a display)
 ```bash
 npx playwright test --headed
 ```
@@ -112,43 +132,21 @@ npx playwright test --headed
 > runners with a "Missing X server or $DISPLAY" error unless run via `xvfb-run npx playwright test --headed`.
 > For local machines with a screen, `--headed` works directly and is useful for visual debugging.
 
-Run in debug mode (step through with Playwright Inspector):
+### Run in debug mode (step through with Playwright Inspector)
 ```bash
 npx playwright test --debug
 ```
 
-### Cucumber (BDD) tests
-
-```bash
-npm run test:cucumber
-```
-
-> Add this script to `package.json` once Cucumber is wired up, e.g.:
-> ```json
-> "scripts": {
->   "test:cucumber": "cucumber-js"
-> }
-> ```
-
 ### View the HTML report
-
 ```bash
 npx playwright show-report
 ```
 
-## Continuous Integration
+## Roadmap
 
-This project runs automated tests via:
-- **GitHub Actions** — on push/PR, executing the full suite across browsers
-- **Jenkins** — pipeline job supporting scheduled and on-demand runs
-- **AWS** — parallel execution across multiple runners to reduce total suite time
-
-Workflow/pipeline configuration files:
-- `.github/workflows/playwright.yml`
-- `Jenkinsfile`
-
-## Author
-
-Built and maintained by **Jide** ([JFSoftwareServices](https://github.com/JFSoftwareServices)) — SDET with a background spanning financial services test automation (Deutsche Bank, Goldman Sachs, HSBC, American Express, BBVA, Yoox Net-A-Porter).
-
-This project is intended as a portfolio piece demonstrating framework design, BDD integration, and CI/CD pipeline setup for automated testing.
+Planned additions, not yet implemented:
+- Full page object coverage for the ShopClient order flow (dashboard, cart, checkout, order history)
+- Test coverage for the-internet.herokuapp.com and demoqa.com
+- Cucumber (BDD) integration alongside native Playwright specs
+- CI/CD via GitHub Actions and Jenkins
+- Parallel test execution on AWS

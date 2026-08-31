@@ -1,12 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Loads TEST_USER_EMAIL, TEST_USER_PASSWORD, etc. from a local .env file
+// (see .env.example for required keys). Never commit a real .env file.
+// Resolved relative to this file so it works regardless of the current working directory.
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -25,11 +25,18 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    // Base URL isn't set here since tests currently target multiple distinct sites
+    // (rahulshettyacademy.com, demoqa.com, the-internet.herokuapp.com).
+    // Add `baseURL` if/when tests consolidate to a single app under test.
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    // Screenshot only on failure
+    screenshot: 'only-on-failure',
+
+    // Video only on failure
+    video: 'retain-on-failure',
   },
 
   /* Configure projects for major browsers */
