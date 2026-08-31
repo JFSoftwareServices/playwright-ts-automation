@@ -4,10 +4,10 @@ import { validLoginData } from '../../test-data/login-data';
 import { orderTestData } from '../../test-data/order-data';
 import { countrySearchData } from '../../test-data/country-search-data';
 
-// This journey performs real UI login as part of the flow, so it must start
-// logged out rather than inheriting the pre-authenticated storageState used
-// by other test files.
-//test.use({ storageState: { cookies: [], origins: [] } });
+// Authentication is handled by globalSetup before the test suite starts.
+// globalSetup logs in via the API, injects the JWT into localStorage,
+// navigates to the dashboard, and saves the authenticated state to storageState.json.
+// This test therefore starts already authenticated and does not perform UI login.
 
 test.describe('Journey: Browse → Purchase', () => {
     let pages: Pages;
@@ -18,13 +18,9 @@ test.describe('Journey: Browse → Purchase', () => {
     });
 
     test('adds a product to cart, and completes checkout', async () => {
-        const { username, password } = validLoginData;
+        const { username } = validLoginData;
         const { productName } = orderTestData;
         const { countryCode, countryName } = countrySearchData;
-
-        // Login
-        await pages.loginPage.login(username, password);
-        await pages.headerComponent.verifyLoggedIn();
 
         // Browse
         await pages.dashboardPage.addProductToCart(productName);

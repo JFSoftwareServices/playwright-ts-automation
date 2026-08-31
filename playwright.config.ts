@@ -13,6 +13,8 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
  */
 export default defineConfig({
   testDir: './tests',
+  /* Run global setup once to prepare authentication/state once per test command */
+  globalSetup: require.resolve('./global-setup.ts'),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -25,6 +27,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    storageState: 'storageState.json',
     // Base URL isn't set here since tests currently target multiple distinct sites
     // (rahulshettyacademy.com, demoqa.com, the-internet.herokuapp.com).
     // Add `baseURL` if/when tests consolidate to a single app under test.
