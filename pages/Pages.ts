@@ -6,10 +6,10 @@ import { OrdersReviewPage } from './OrdersReviewPage';
 import { CartPage } from './CartPage';
 import { HeaderComponent } from './Components/HeaderComponent';
 
-/**
- * Central access point for all page objects, instantiated once per test
- * with a shared Page instance. Avoids re-instantiating page objects
- * individually in every test file.
+/** 
+ * Central access point for all page objects and components. 
+ * All objects use the same Playwright Page (browser tab) 
+ * provided by the test. 
  */
 export class Pages {
   readonly page: Page;
