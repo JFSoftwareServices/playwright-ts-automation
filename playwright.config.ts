@@ -49,11 +49,17 @@ export default defineConfig({
   // Retry failed tests only in CI.
   retries: process.env.CI ? 2 : 0,
 
+  // Limit parallel workers on CI (resource-constrained runners);
+  // unlimited locally.
+  workers: process.env.CI ? 2 : undefined,
+
   // ============================================================
   // REPORTING
   // ============================================================
 
-  reporter: 'html',
+  // HTML report for browsing results; list reporter for
+  // readable pass/fail output directly in the terminal.
+  reporter: [['html', { open: 'never' }], ['list']],
 
   // ============================================================
   // SHARED TEST SETTINGS
