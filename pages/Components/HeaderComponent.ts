@@ -11,7 +11,7 @@ export class HeaderComponent {
         this.page = page;
         this.homeLink = page.getByRole('link', { name: 'Home' });
         this.ordersButton = page.locator("button[routerlink*='myorders']");
-        this.cartLink = page.locator("[routerlink*='cart']");
+        this.cartLink = page.locator("button[routerlink*='cart']");
         this.signOutButton = page.getByRole('button', { name: 'Sign Out' });
     }
 
