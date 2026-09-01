@@ -149,64 +149,33 @@ test.fail('Assertion timeout demonstration', async ({ page }) => {
 
 /**
  * ============================================================
- * 4. TEST GLOBAL TIMEOUT
+ * 4. TEST-LEVEL TIMEOUT
  * ============================================================
  *
- * playwright.config.ts might contain:
+ * Demonstrates how to override the global test timeout
+ * for an individual test.
+ *
+ * Global configuration:
  *
  *     timeout: 30000
  *
- * This is the maximum duration allowed for the test.
+ * This test overrides it to:
  *
- * IMPORTANT:
- *
- * This is NOT the assertion timeout.
- *
- * It applies to the test as a whole.
- *
- * Conceptually:
- *
- * TEST
- *  |
- *  +-- beforeEach
- *  |
- *  +-- goto()
- *  |
- *  +-- fill()
- *  |
- *  +-- click()
- *  |
- *  +-- expect()
- *  |
- *  +-- other operations
- *  |
- *  +-- afterEach
- *
- * The test timeout provides the overall limit.
+ *     5000ms
  */
-test('Test timeout example', async ({ page }) => {
+test('Test timeout configuration', async ({ page }) => {
 
-    /*
-     * Override the configured test timeout for this test.
-     *
-     * This test has a maximum duration of 5 seconds.
-     */
+    // Override the global test timeout for this test.
     test.setTimeout(5_000);
 
     await page.goto('https://example.com');
 
-    /*
-     * Deliberately sleep for 10 seconds.
-     *
-     * Because the entire test has a 5-second timeout,
-     * Playwright will terminate the test before this
-     * operation completes.
-     *
-     * This is ONLY being done to demonstrate test timeout.
-     */
-    await page.waitForTimeout(10_000);
-});
+    // Verify that this test has a 5-second timeout.
+    expect(test.info().timeout).toBe(5_000);
 
+    // Do some work, but stay within the timeout.
+    await page.waitForTimeout(1_000);
+});
 
 /**
  * ============================================================
@@ -251,7 +220,7 @@ test('Global action timeout', async ({ page }) => {
      * action to become possible.
      */
     await page.getByRole('link', {
-        name: 'More information...'
+        name: 'Learn more'
     }).click();
 });
 
@@ -278,7 +247,7 @@ test('Step-level action timeout', async ({ page }) => {
     await page.goto('https://example.com');
 
     await page.getByRole('link', {
-        name: 'More information...'
+        name: 'Learn more'
     }).click({
         timeout: 2_000
     });
@@ -346,7 +315,7 @@ test('Action timeout versus assertion timeout', async ({ page }) => {
      * Only this click has a 3-second timeout.
      */
     await page.getByRole('link', {
-        name: 'More information...'
+        name: 'Learn more'
     }).click({
         timeout: 3_000
     });
