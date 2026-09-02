@@ -1118,25 +1118,124 @@ Web-first assertions provide better synchronization and reduce unnecessary waiti
 
 ---
 
-# CI/CD
+## CI/CD – GitHub Actions
 
-The project includes a GitHub Actions workflow:
+The framework uses **GitHub Actions** to automatically execute the Playwright test suite on:
+
+* Pushes to the `main` branch
+* Pull requests targeting `main`
+
+### Pipeline Overview
 
 ```text
-.github/workflows/playwright.yaml
+GitHub Push / Pull Request
+          │
+          ▼
+    Checkout Code
+          │
+          ▼
+    Setup Node.js 24
+          │
+          ▼
+     npm ci
+          │
+          ▼
+Install Playwright Browsers
+          │
+          ▼
+ Run Parallel-Safe Tests
+          │
+          ▼
+ Run Account-Mutating Tests
+        Serially
+          │
+          ▼
+ Upload Playwright Report
 ```
 
-The workflow allows the Playwright test suite to run automatically in a clean CI environment.
+### Test Execution Strategy
 
-The workflow can be used to:
+The CI pipeline separates tests according to their ability to run safely in parallel.
 
-* Install Node.js dependencies
-* Install Playwright browsers
-* Execute automated tests
-* Detect regressions
-* Publish test results and reports as GitHub Actions artifacts where configured
+**Parallel-safe tests**
 
-This ensures that the tests are not dependent solely on a developer's local environment.
+```bash
+npm run test:parallel
+```
+
+Runs tests excluding the `@serial` tag and allows Playwright's configured workers to execute them concurrently.
+
+**Account-mutating tests**
+
+```bash
+npm run test:serial
+```
+
+Runs tests tagged `@serial` using a single worker.
+
+This separation helps prevent tests that modify shared backend state, such as carts, orders, or account data, from interfering with one another.
+
+### Test Credentials
+
+Credentials are stored as **GitHub Actions Secrets** rather than committed to source control.
+
+The workflow injects them into the test process:
+
+```yaml
+env:
+  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+```
+
+The repository therefore contains no hard-coded test credentials.
+
+### Playwright HTML Report
+
+The Playwright HTML report is uploaded as a GitHub Actions artifact after the test run:
+
+```yaml
+- uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: playwright-report
+    path: playwright-report/
+    retention-days: 14
+```
+
+`if: always()` ensures that the report is uploaded even when one or more tests fail.
+
+The report is retained for **14 days** and can be downloaded from the workflow run in GitHub Actions.
+
+### Workflow
+
+The CI workflow is located at:
+
+```text
+.github/
+└── workflows/
+    └── playwright.yml
+```
+
+The workflow performs the following:
+
+1. Checks out the repository.
+2. Configures Node.js 24.
+3. Uses npm's lockfile-based installation with `npm ci`.
+4. Installs Playwright browsers and required system dependencies.
+5. Executes parallel-safe tests.
+6. Executes account-mutating tests serially.
+7. Uploads the Playwright HTML report regardless of test outcome.
+
+### CI Design Principles
+
+The pipeline follows several principles:
+
+* **Reproducible builds** — `npm ci` installs dependencies from `package-lock.json`.
+* **Secure configuration** — credentials are supplied through GitHub Secrets.
+* **Parallel execution** — independent tests execute concurrently to reduce feedback time.
+* **Controlled shared state** — tests that mutate shared account data can be isolated through serial execution.
+* **Failure diagnostics** — Playwright reports are retained even when tests fail.
+* **Automated quality gates** — tests execute automatically on pushes and pull requests.
 
 ---
 
