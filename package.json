@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "npm run test:parallel && npm run test:serial",
+    "test:parallel": "playwright test --grep-invert @serial",
+    "test:serial": "playwright test --workers=1 --grep @serial",
+    "report": "playwright show-report"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JFSoftwareServices/playwright-ts-automation.git"
