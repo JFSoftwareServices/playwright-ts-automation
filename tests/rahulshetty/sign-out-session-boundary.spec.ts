@@ -5,7 +5,7 @@ test.describe('Journey: Sign Out and Session Boundary', () => {
 
     // Authentication is handled by globalSetup.
     await page.goto(
-      'https://rahulshettyacademy.com/client/#/dashboard/dash'
+      '/client/#/dashboard/dash'
     );
 
     // Sign out and verify the session has ended.

@@ -17,7 +17,7 @@ test.use({
 test.describe('Login', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('https://rahulshettyacademy.com/client/');
+        await page.goto('/client');
     });
 
     test('logs in successfully with valid credentials', async ({ page }) => {

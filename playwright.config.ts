@@ -58,6 +58,9 @@ export default defineConfig({
   // ============================================================
 
   use: {
+    // Base URL for relative navigation in tests.
+    baseURL: 'https://rahulshettyacademy.com',
+
     // Reuse the authenticated state created by globalSetup.
     storageState: 'storageState.json',
 

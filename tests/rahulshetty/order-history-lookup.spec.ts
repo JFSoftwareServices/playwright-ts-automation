@@ -5,7 +5,7 @@ import { countrySearchData } from '../../test-data/country-search-data';
 test.describe('Journey: Order History Lookup', { tag: '@serial' }, () => {
     // Authentication is handled by globalSetup.
     test.beforeEach(async ({ page }) => {
-        await page.goto('https://rahulshettyacademy.com/client/#/dashboard/dash');
+        await page.goto('/client/#/dashboard/dash');
     });
 
     test('finds a completed order in order history', async ({ pages }) => {

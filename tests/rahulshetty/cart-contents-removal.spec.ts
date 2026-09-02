@@ -6,7 +6,7 @@ test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
     // Authentication is handled by globalSetup.
     test.beforeEach(async ({ page, pages }) => {
 
-        await page.goto('https://rahulshettyacademy.com/client/');
+        await page.goto('/client');
 
         await pages.dashboardPage.addProductToCart(
             orderTestData.productName

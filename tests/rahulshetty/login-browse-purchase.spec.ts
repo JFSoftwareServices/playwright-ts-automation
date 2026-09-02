@@ -9,7 +9,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test.describe('Journey: Login → Browse → Purchase', { tag: '@serial' }, () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('https://rahulshettyacademy.com/client/');
+        await page.goto('/client');
     });
 
     test('logs in, adds a product to cart, and completes checkout', async ({ pages }) => {
