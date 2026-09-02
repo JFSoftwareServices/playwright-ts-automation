@@ -23,7 +23,14 @@ async function globalSetup() {
         }
     );
 
-    expect(loginResponse.ok()).toBeTruthy();
+    if (!loginResponse.ok()) {
+        const responseBody = await loginResponse.text();
+
+        throw new Error(
+            `Login API failed: ${loginResponse.status()} ${loginResponse.statusText()}\n` +
+            `Response: ${responseBody}`
+        );
+    }
 
     // Extract JWT token
     const { token } = await loginResponse.json();
