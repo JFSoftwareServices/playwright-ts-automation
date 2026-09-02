@@ -1,13 +1,10 @@
-import { expect, test } from '@playwright/test';
-import { Pages } from '../../pages/Pages';
+import { test, expect } from '../../fixtures/test';
 import { orderTestData } from '../../test-data/order-data';
 
 test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
-    let pages: Pages;
 
     // Authentication is handled by globalSetup.
-    test.beforeEach(async ({ page }) => {
-        pages = new Pages(page);
+    test.beforeEach(async ({ page, pages }) => {
 
         await page.goto('https://rahulshettyacademy.com/client/');
 
@@ -16,7 +13,7 @@ test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
         );
     });
 
-    test('displays the correct product and total', async () => {
+    test('displays the correct product and total', async ({ pages }) => {
         await pages.headerComponent.navigateToCart();
 
         await expect(
@@ -36,7 +33,7 @@ test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
         );
     });
 
-    test('removes item from cart', async () => {
+    test('removes item from cart', async ({ pages }) => {
         await pages.headerComponent.navigateToCart();
 
         await expect(

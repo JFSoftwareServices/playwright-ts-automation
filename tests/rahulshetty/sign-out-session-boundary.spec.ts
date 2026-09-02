@@ -1,9 +1,7 @@
-import { expect, test } from '@playwright/test';
-import { Pages } from '../../pages/Pages';
+import { test, expect } from '../../fixtures/test';
 
 test.describe('Journey: Sign Out and Session Boundary', () => {
-  test('signs out and prevents access to authenticated pages', async ({ page }) => {
-    const pages = new Pages(page);
+  test('signs out and prevents access to authenticated pages', async ({ page, pages }) => {
 
     // Authentication is handled by globalSetup.
     await page.goto(

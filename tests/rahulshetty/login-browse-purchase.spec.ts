@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { Pages } from '../../pages/Pages';
+import { test, expect } from '../../fixtures/test';
 import { validLoginData } from '../../test-data/login-data';
 import { orderTestData } from '../../test-data/order-data';
 import { countrySearchData } from '../../test-data/country-search-data';
@@ -8,14 +7,12 @@ import { countrySearchData } from '../../test-data/country-search-data';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Journey: Login → Browse → Purchase', { tag: '@serial' }, () => {
-    let pages: Pages;
 
     test.beforeEach(async ({ page }) => {
-        pages = new Pages(page);
         await page.goto('https://rahulshettyacademy.com/client/');
     });
 
-    test('logs in, adds a product to cart, and completes checkout', async () => {
+    test('logs in, adds a product to cart, and completes checkout', async ({ pages }) => {
         const { username, password } = validLoginData;
         const { productName } = orderTestData;
         const { countryCode, countryName } = countrySearchData;

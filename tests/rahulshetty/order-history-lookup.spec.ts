@@ -1,17 +1,14 @@
-import { test, expect } from '@playwright/test';
-import { Pages } from '../../pages/Pages';
+import { test, expect } from '../../fixtures/test';
 import { orderTestData } from '../../test-data/order-data';
 import { countrySearchData } from '../../test-data/country-search-data';
 
 test.describe('Journey: Order History Lookup', { tag: '@serial' }, () => {
-    let pages: Pages;
     // Authentication is handled by globalSetup.
     test.beforeEach(async ({ page }) => {
-        pages = new Pages(page);
         await page.goto('https://rahulshettyacademy.com/client/#/dashboard/dash');
     });
 
-    test('finds a completed order in order history', async () => {
+    test('finds a completed order in order history', async ({ pages }) => {
         const { productName } = orderTestData;
         const { countryCode, countryName } = countrySearchData;
 
