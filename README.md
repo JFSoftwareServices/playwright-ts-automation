@@ -93,7 +93,6 @@ playwright-ts-automation/
 │       └── angular-practice.spec.ts
 │
 ├── global-setup.ts
-├── .env.example
 ├── .gitignore
 ├── playwright.config.ts
 ├── package.json
@@ -331,31 +330,6 @@ Install Playwright browsers and required dependencies:
 ```bash
 npx playwright install --with-deps
 ```
-
----
-
-# Environment Configuration
-
-The login tests and `global-setup.ts` require a valid test account for the Rahul Shetty Academy application.
-
-Create the local environment file:
-
-```bash
-cp .env.example .env
-```
-
-Add the required credentials:
-
-```text
-TEST_USER_EMAIL=your-test-account@example.com
-TEST_USER_PASSWORD=your-password
-```
-
-The `.env` file is ignored by Git and **must not be committed**.
-
-Only `.env.example` should be committed to the repository.
-
----
 
 # Authentication Strategy
 
