@@ -14,7 +14,7 @@ test.use({
     }
 });
 
-test.describe('Login', { tag: '@serial' }, () => {
+test.describe('Login', () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto('https://rahulshettyacademy.com/client/');

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { Pages } from '../../pages/Pages';
 import { orderTestData } from '../../test-data/order-data';
 
-test.describe('Journey: Cart Contents and Removal', { tag: '@cart' }, () => {
+test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
     let pages: Pages;
 
     // Authentication is handled by globalSetup.

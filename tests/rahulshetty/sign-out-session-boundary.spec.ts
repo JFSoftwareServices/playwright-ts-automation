@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { Pages } from '../../pages/Pages';
 
-test.describe('Journey: Sign Out and Session Boundary', { tag: '@cart' }, () => {
+test.describe('Journey: Sign Out and Session Boundary', () => {
   test('signs out and prevents access to authenticated pages', async ({ page }) => {
     const pages = new Pages(page);
 
