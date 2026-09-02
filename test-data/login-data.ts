@@ -1,9 +1,9 @@
 export const validLoginData = {
-  username: process.env.TEST_USER_EMAIL ?? '',
-  password: process.env.TEST_USER_PASSWORD ?? '',
+  username: 'Tester1@example.com',
+  password: 'Tester1@example.com',
 };
 
 export const invalidLoginData = {
-  username: process.env.TEST_USER_EMAIL ?? '',
+  username: 'Tester1@example.com',
   password: 'wrong-password-123',
 };
