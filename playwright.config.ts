@@ -70,8 +70,8 @@ export default defineConfig({
     // Maximum duration of a navigation operation.
     navigationTimeout: 30_000,
 
-    // Capture trace when a test is retried.
-    trace: 'on-first-retry',
+    // Retain trace when a test fails.
+    trace: 'retain-on-failure',
 
     // Capture screenshots only when a test fails.
     screenshot: 'only-on-failure',
