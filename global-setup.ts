@@ -32,19 +32,21 @@ async function globalSetup() {
         );
     }
 
-    // Extract JWT token
-    const { token } = await loginResponse.json();
+    
+    // Extract user id and JWT token
+    const { token, userId } = await loginResponse.json();
 
     // Launch browser and create context
     const browser = await chromium.launch();
     const context = await browser.newContext();
 
-    // Inject JWT into localStorage
+    // Inject JWT and user ID into localStorage
     await context.addInitScript(
-        ({ tokenValue }) => {
+        ({ tokenValue, userIdValue }) => {
             localStorage.setItem('token', tokenValue);
+            localStorage.setItem('userId', userIdValue);
         },
-        { tokenValue: token }
+        { tokenValue: token, userIdValue: userId }
     );
 
     // Create page

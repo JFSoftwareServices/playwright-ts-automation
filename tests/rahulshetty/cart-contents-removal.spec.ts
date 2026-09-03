@@ -1,10 +1,13 @@
 import { test, expect } from '../../fixtures/test';
-import { orderTestData } from '../../test-data/order-data';
+import { AuthUtils } from '../../utils/AuthUtils';
+import { ProductApi } from '../../api/ProductApi';
+import { CartApi } from '../../api/CartApi';
+import { orderTestData } from '../../test-data/order-data'; ``
 
 test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
 
     // Authentication is handled by globalSetup.
-    test.beforeEach(async ({ page, pages }) => {
+    test.beforeEach(async ({ page, pages }) =>{
 
         await page.goto('/client');
 
@@ -47,7 +50,25 @@ test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
         await pages.cartPage.verifyCartEmpty();
     });
 
-    test.afterEach(async () => {
-        // TODO: Clear the cart via API to ensure test isolation if a test fails.
+    test.afterEach(async ({ page, api }) => {
+        // Remove the product from the cart if present, using API to ensure a clean state for subsequent tests.
+        const authUtils = new AuthUtils();
+        const productApi = new ProductApi();
+        const cartApi = new CartApi();
+
+        const authDetails = await authUtils.getAuthDetails(page);
+
+        const productId = await productApi.getProductId(
+            api,
+            orderTestData.productName,
+            authDetails.token
+        );
+
+        await cartApi.removeProductFromCart(
+            api,
+            authDetails.userId,
+            productId,
+            authDetails.token
+        );
     });
 });
