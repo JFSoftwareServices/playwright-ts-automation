@@ -4,7 +4,7 @@ import { DashboardPage } from './DashboardPage';
 import { OrdersHistoryPage } from './OrdersHistoryPage';
 import { OrdersReviewPage } from './OrdersReviewPage';
 import { CartPage } from './CartPage';
-import { HeaderComponent } from './Components/HeaderComponent';
+import { HeaderComponent } from './components/HeaderComponent';
 
 /** 
  * Central access point for all page objects and components. 
