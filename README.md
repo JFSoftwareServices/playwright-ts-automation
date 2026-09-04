@@ -1,14 +1,16 @@
 # Playwright TypeScript Automation Framework
 
-A TypeScript-based UI test automation framework built with **Playwright**, demonstrating Page Object Model (POM), API-based authentication, parallel execution, controlled serial execution, reusable test data, cross-browser testing, and CI/CD integration.
+A TypeScript-based UI test automation framework built with **Playwright Test**, demonstrating Page Object Model (POM), API-based authentication, reusable test data, parallel execution, controlled serial execution, cross-browser testing, environment-based configuration, and CI/CD integration.
 
-The framework provides automated coverage for the **[Rahul Shetty Academy E-Commerce Client application](https://rahulshettyacademy.com/client)**, covering authentication, product selection, cart management, order history, and session-boundary scenarios.
+The framework provides automated coverage for the **Rahul Shetty Academy E-Commerce Client application**, covering authentication, product selection, shopping cart behaviour, order history, sign-out, and session-boundary scenarios.
+
+The project is designed to demonstrate practical automation engineering principles suitable for a modern **SDET / Test Automation Engineer** portfolio.
 
 ---
 
-## Overview
+# Overview
 
-### Application Under Test
+## Application Under Test
 
 **Rahul Shetty Academy E-Commerce Client**
 
@@ -19,38 +21,36 @@ This project is **not intended to provide exhaustive application coverage**. Ins
 The framework demonstrates automation of:
 
 * Login
+* Negative login scenarios
 * Product selection
 * Shopping cart validation
 * Cart item removal
 * Order history
 * Sign-out and session-boundary validation
-* Negative login scenarios
 * Cross-browser execution
-* API-based authentication and test setup
-
-The framework is designed to demonstrate practices suitable for a modern **SDET / Test Automation Engineer** project.
+* API-based authentication
+* Authenticated browser state reuse
+* Parallel and controlled serial execution
+* CI/CD execution using GitHub Actions
 
 ---
 
 # Tech Stack
 
-| Technology / Approach | Purpose                                |
-| --------------------- | -------------------------------------- |
-| TypeScript            | Programming language                   |
-| Playwright Test       | Test runner and browser automation     |
-| Node.js               | Runtime                                |
-| npm                   | Package management and project scripts |
-| Page Object Model     | UI abstraction and maintainability     |
-| Git / GitHub          | Source control                         |
-| GitHub Actions        | CI/CD                                  |
-| GitHub Codespaces     | Cloud development environment          |
-
-### Authentication
-
-| Technology / Approach     | Purpose                                               |
-| ------------------------- | ----------------------------------------------------- |
-| JWT                       | API-based authentication and authenticated test setup |
-| Playwright `storageState` | Reuse authenticated browser state                     |
+| Technology / Approach     | Purpose                                |
+| ------------------------- | -------------------------------------- |
+| TypeScript                | Programming language                   |
+| Playwright Test           | Test runner and browser automation     |
+| Node.js 24                | Runtime                                |
+| npm                       | Package management and project scripts |
+| Page Object Model         | UI abstraction and maintainability     |
+| Page Object Manager       | Central access to Page Objects         |
+| Component Objects         | Reusable UI components                 |
+| JWT                       | API-based authentication               |
+| Playwright `storageState` | Reuse authenticated browser state      |
+| Git / GitHub              | Source control                         |
+| GitHub Actions            | CI/CD                                  |
+| GitHub Codespaces         | Cloud development environment          |
 
 ---
 
@@ -58,10 +58,17 @@ The framework is designed to demonstrate practices suitable for a modern **SDET 
 
 ```text
 playwright-ts-automation/
+
 │
 ├── .github/
 │   └── workflows/
-│       └── playwright.yaml
+│       └── playwright.yml
+│
+├── api/
+│   └── AuthApi.ts
+│
+├── fixtures/
+│   └── test.ts
 │
 ├── pages/
 │   ├── LoginPage.ts
@@ -75,8 +82,10 @@ playwright-ts-automation/
 │   │
 │   └── Pages.ts
 │
+├── utils/
+│   └── AuthUtils.ts
+│
 ├── test-data/
-│   ├── login-data.ts
 │   ├── order-data.ts
 │   └── country-search-data.ts
 │
@@ -88,14 +97,15 @@ playwright-ts-automation/
 │       ├── cart-contents-removal.spec.ts
 │       ├── sign-out-session-boundary.spec.ts
 │       ├── order-history-lookup.spec.ts
-│       ├── login-practice-controls.ts
 │       ├── login-practice-child-window.spec.ts
 │       └── angular-practice.spec.ts
 │
 ├── global-setup.ts
+├── .env.example
 ├── .gitignore
 ├── playwright.config.ts
 ├── package.json
+├── package-lock.json
 ├── tsconfig.json
 └── README.md
 ```
@@ -108,13 +118,19 @@ The framework uses the **Page Object Model (POM)** together with a central **Pag
 
 ```text
                          Playwright Test
+
                                 │
+
                                 ▼
+
                          Pages (Manager)
+
                                 │
+
              ┌──────────────────┼──────────────────┐
              │                  │                  │
              ▼                  ▼                  ▼
+
         LoginPage        DashboardPage         CartPage
              │                  │                  │
              └──────────────────┼──────────────────┘
@@ -123,7 +139,37 @@ The framework uses the **Page Object Model (POM)** together with a central **Pag
                        HeaderComponent
 ```
 
-## Page Objects
+Authentication is handled separately from the UI Page Objects:
+
+```text
+                       global-setup.ts
+
+                              │
+                              ▼
+
+                          AuthApi
+                              │
+                              ▼
+                       API Login Request
+                              │
+                              ▼
+                       JWT + User ID
+                              │
+                              ▼
+                    Browser localStorage
+                              │
+                              ▼
+                     Playwright storageState
+                              │
+                              ▼
+                     Authenticated Tests
+```
+
+This separates authentication concerns from page interaction and keeps the UI tests focused on user-facing behaviour.
+
+---
+
+# Page Objects
 
 Page Objects encapsulate the locators and behaviour associated with a particular application page.
 
@@ -143,11 +189,13 @@ await pages.dashboardPage.addProductToCart(
 );
 ```
 
-The test does not need to know which CSS selectors or DOM elements are used to locate the product.
+The test does not need to know which DOM selectors are required to locate the product or its **Add To Cart** button.
+
+This keeps tests focused on business behaviour rather than implementation details.
 
 ---
 
-## Component Objects
+# Component Objects
 
 Reusable areas of the application are represented as **Component Objects**.
 
@@ -157,18 +205,19 @@ For example:
 pages/Components/HeaderComponent.ts
 ```
 
-`HeaderComponent` contains functionality such as:
+`HeaderComponent` contains common functionality such as:
 
 * Home navigation
 * Cart navigation
 * Orders navigation
 * Sign out
+* Authentication verification
 
 This allows common application functionality to be reused across multiple tests without duplicating locators and interaction logic.
 
 ---
 
-## Page Object Manager
+# Page Object Manager
 
 `Pages.ts` acts as a central access point for the Page Objects and reusable components.
 
@@ -196,141 +245,6 @@ await pages.cartPage.verifyProductIsDisplayed('iPhone 13');
 
 ---
 
-# Setup
-
-The project can be run either:
-
-1. Locally on a developer machine
-2. In GitHub Codespaces
-
-The application setup and test commands are the same once the project dependencies have been installed.
-
----
-
-# GitHub Codespaces
-
-GitHub Codespaces provides a cloud-based development environment for working with the repository without requiring the project to be installed directly on a local machine.
-
-## Open the Repository in Codespaces
-
-For the normal Codespaces workflow, open the GitHub repository and select:
-
-**Code → Codespaces → Create codespace on main**
-
-The repository is automatically available in the Codespace, so **no `git clone` is required**.
-
-Once the Codespace starts, verify that Node.js and npm are available:
-
-```bash
-node --version
-npm --version
-```
-
-Then install the project dependencies:
-
-```bash
-npm install
-```
-
-Install the Playwright browsers and required Linux system dependencies:
-
-```bash
-npx playwright install --with-deps
-```
-
----
-
-## Why Use `--with-deps`?
-
-A Codespace normally runs on Linux.
-
-The command:
-
-```bash
-npx playwright install
-```
-
-downloads the Playwright browser binaries but does not necessarily install the Linux system libraries required by those browsers.
-
-For Codespaces, containers and CI environments, use:
-
-```bash
-npx playwright install --with-deps
-```
-
-This installs the Playwright browsers together with the required operating-system dependencies.
-
-If you see an error similar to:
-
-```text
-error while loading shared libraries:
-libatk-1.0.so.0: cannot open shared object file
-```
-
-run:
-
-```bash
-npx playwright install --with-deps
-```
-
----
-
-# Local Development Setup
-
-## Prerequisites
-
-The project requires:
-
-* Node.js 24.x LTS
-* npm
-* Git
-
-Check your installed versions:
-
-```bash
-node --version
-npm --version
-git --version
-```
-
-Node.js can be downloaded from:
-
-https://nodejs.org
-
-Alternatively, use `nvm`:
-
-```bash
-nvm install 24
-nvm use 24
-```
-
----
-
-## Clone the Repository
-
-To run the project locally, clone the repository:
-
-```bash
-git clone https://github.com/JFSoftwareServices/playwright-ts-automation.git
-cd playwright-ts-automation
-```
-
----
-
-## Install Dependencies
-
-Install the project dependencies:
-
-```bash
-npm install
-```
-
-Install Playwright browsers and required dependencies:
-
-```bash
-npx playwright install --with-deps
-```
-
 # Authentication Strategy
 
 The framework uses two authentication approaches depending on the type of test being executed.
@@ -338,8 +252,6 @@ The framework uses two authentication approaches depending on the type of test b
 ## UI Authentication
 
 Login tests deliberately start without an authenticated Playwright storage state so that the actual login UI is tested.
-
-For example:
 
 ```ts
 test.use({
@@ -350,7 +262,7 @@ test.use({
 });
 ```
 
-This allows the test to exercise the complete login journey:
+This allows the test to exercise the actual login journey:
 
 ```text
 Login Page
@@ -363,87 +275,314 @@ Login Page
      Authenticated Session
 ```
 
+This ensures that the authentication UI itself is covered by automation.
+
 ---
 
 ## API-Based Authentication
 
 Authenticated tests do not need to repeatedly perform the login UI journey.
 
-`global-setup.ts` performs authentication and creates the authenticated Playwright storage state.
+`global-setup.ts` uses `AuthApi` to authenticate through the application's API.
 
-The authenticated state can then be reused by the tests.
+The resulting JWT and user ID are then used to establish the authenticated browser state.
 
-This provides two important benefits:
-
-1. The login UI is tested independently.
-2. Other tests do not waste execution time repeatedly logging in through the UI.
-
-This follows a hybrid approach where **API calls are used for efficient test setup**, while **UI automation is used to validate user-facing behaviour**.
-
----
-
-# Why Login Tests Can Run in Parallel
-
-The login tests can run in parallel because Playwright provides an isolated browser context for each test, while authentication is handled using JWT-based session state.
+The state is saved using Playwright's `storageState`.
 
 Conceptually:
 
 ```text
-                       Test Runner
-                            │
-             ┌──────────────┼──────────────┐
-             │              │              │
-             ▼              ▼              ▼
-          Test 1         Test 2         Test 3
-             │              │              │
-             ▼              ▼              ▼
-        Context 1       Context 2       Context 3
-             │              │              │
-             ▼              ▼              ▼
-        Session A       Session B       Session C
+global-setup.ts
+      │
+      ▼
+    AuthApi
+      │
+      ▼
+  API Login
+      │
+      ▼
+ JWT + userId
+      │
+      ▼
+Browser localStorage
+      │
+      ▼
+storageState.json
+      │
+      ▼
+Authenticated Tests
 ```
 
-Each Playwright test receives its own browser context.
+This provides two important benefits:
 
-Browser state such as:
+1. The login UI is tested independently.
+2. Other authenticated tests do not repeatedly perform the login UI journey.
+
+This follows a hybrid approach where **API authentication is used for efficient test setup**, while **UI automation is used to validate user-facing behaviour**.
+
+---
+
+# Authentication Classes
+
+Authentication responsibilities are separated into different layers.
+
+## `AuthApi`
+
+`AuthApi` handles API-level authentication.
+
+```text
+AuthApi
+   │
+   └── API login
+        │
+        └── JWT + userId
+```
+
+It is used by `global-setup.ts`.
+
+---
+
+## `AuthUtils`
+
+`AuthUtils` handles browser-side authentication state.
+
+It retrieves authentication information from the browser's `localStorage`, such as:
+
+```text
+localStorage
+    │
+    ├── token
+    └── userId
+```
+
+This keeps browser authentication-state handling separate from the API authentication performed by `AuthApi`.
+
+---
+
+# Global Setup
+
+The framework uses Playwright's `globalSetup` to establish authenticated browser state before the test suite executes.
+
+The process is:
+
+```text
+1. Create API request context
+          │
+          ▼
+2. Authenticate using AuthApi
+          │
+          ▼
+3. Obtain JWT and user ID
+          │
+          ▼
+4. Create browser context
+          │
+          ▼
+5. Inject authentication into localStorage
+          │
+          ▼
+6. Navigate to the application
+          │
+          ▼
+7. Save storageState.json
+```
+
+Authenticated tests can then start with an existing authenticated session rather than repeating the login process.
+
+---
+
+# Environment Configuration
+
+The framework uses environment variables to separate configuration and credentials from the source code.
+
+This provides a safer approach to handling environment-specific configuration and prevents credentials from being hard-coded directly into the test framework.
+
+The same source code can therefore run locally and in CI without changing the test implementation.
+
+---
+
+## Local Development
+
+When running the framework locally, environment variables are supplied through a `.env` file.
+
+Example:
+
+```env
+BASE_URL=https://rahulshettyacademy.com
+TEST_USER_EMAIL=Tester1@example.com
+TEST_USER_PASSWORD=Tester1@example.com
+```
+
+The `.env` file is **not committed to Git** and is included in `.gitignore`.
+
+A `.env.example` file is provided in the repository to document the environment variables required by the framework without exposing local credentials.
+
+For example:
+
+```env
+BASE_URL=https://rahulshettyacademy.com
+TEST_USER_EMAIL=
+TEST_USER_PASSWORD=
+```
+
+The framework loads these values into `process.env`.
+
+For example:
+
+```ts
+process.env.BASE_URL
+process.env.TEST_USER_EMAIL
+process.env.TEST_USER_PASSWORD
+```
+
+This allows credentials and environment-specific configuration to remain outside the source code.
+
+---
+
+# CI Environment – GitHub Actions
+
+When the tests run in GitHub Actions, the local `.env` file is **not required**.
+
+Sensitive credentials are stored using **GitHub Actions Repository Secrets**.
+
+## Creating GitHub Actions Secrets
+
+In the GitHub repository, navigate to:
+
+```text
+Settings
+   │
+   ▼
+Secrets and variables
+   │
+   ▼
+Actions
+   │
+   ▼
+Repository secrets
+```
+
+Create the following repository secrets:
+
+```text
+TEST_USER_EMAIL
+TEST_USER_PASSWORD
+```
+
+The credentials are stored securely by GitHub rather than being committed to the repository.
+
+---
+
+## Supplying Secrets to the Test Process
+
+The GitHub Actions workflow exposes the secrets as environment variables when Playwright runs:
+
+```yaml
+env:
+  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+```
+
+The Playwright framework then accesses them through the same `process.env` interface used locally:
+
+```ts
+process.env.TEST_USER_EMAIL
+process.env.TEST_USER_PASSWORD
+```
+
+The source code therefore does not need to know whether it is running locally or in CI.
+
+The configuration flow is:
+
+```text
+Local Development
+
+.env
+ │
+ ▼
+process.env
+ │
+ ▼
+Playwright Tests
+```
+
+and:
+
+```text
+GitHub Actions
+
+GitHub Repository Secrets
+ │
+ ▼
+Environment Variables
+ │
+ ▼
+process.env
+ │
+ ▼
+Playwright Tests
+```
+
+The same test source code can therefore run in both environments without embedding credentials in the repository.
+
+---
+
+# Why Use Environment Variables?
+
+Environment variables are used to separate **configuration and credentials from test source code**.
+
+This provides several benefits:
+
+* Credentials are not hard-coded in test files.
+* Sensitive values are not committed to Git.
+* Different environments can supply different configuration.
+* The same test code can run locally and in CI.
+* Local credentials can be managed through `.env`.
+* CI credentials can be managed through GitHub Actions Secrets.
+* Environment-specific configuration can be changed without modifying test code.
+
+The `.env` file should remain local and must not be committed to the repository.
+
+The repository contains `.env.example` instead, providing a safe template showing which environment variables are required.
+
+---
+
+# Test Isolation Strategy
+
+The framework aims to keep tests independent wherever possible.
+
+## Browser-Level Isolation
+
+Playwright creates an isolated browser context for each test.
+
+This provides isolation for browser state such as:
 
 * Cookies
 * Local storage
 * Session state
 * Pages
 
-is therefore isolated between tests.
-
-A login performed by one test does not log another test in or out of its browser context.
-
-This makes independent login scenarios suitable for parallel execution.
-
-For example:
-
-* Successful login
-* Invalid password
-* Invalid email
-* Empty credentials
-
-can execute concurrently.
+A login performed by one test does not directly modify the browser context of another test.
 
 ---
 
-## Important: Browser Isolation vs Backend Isolation
+## Backend-Level State
 
-Browser-context isolation does **not** mean that server-side application data is isolated.
+Browser isolation does **not** isolate server-side application data.
 
-For example, if two tests use the same backend account:
+For example:
 
 ```text
-                    User Account
-                         │
-              ┌──────────┼──────────┐
-              │          │          │
-             Cart      Orders     Profile
+Test A
+  │
+  └── Adds product to cart
+
+Test B
+  │
+  └── Expects cart to be empty
 ```
 
-two separate browser contexts may still interact with the same server-side data.
+If both tests use the same backend account, they may still interact with the same server-side cart.
 
 This is particularly important for tests that modify:
 
@@ -453,25 +592,27 @@ This is particularly important for tests that modify:
 * Account settings
 * Other persistent application state
 
-For state-changing tests, the preferred approaches are:
+For state-changing tests where shared backend state could cause interference, the framework uses **controlled serial execution** where appropriate.
 
-1. Use separate test accounts where practical.
-2. Use API-based setup and cleanup.
-3. Use serial execution only where genuinely necessary.
+In a larger production framework, additional isolation strategies could include:
 
-The framework therefore uses a combination of browser isolation, API setup/cleanup and controlled serial execution.
+* Separate test accounts
+* API-based test-data setup
+* API-based cleanup
+* Dedicated test data
+* Database-level isolation where appropriate
 
 ---
 
 # Parallel and Serial Test Execution
 
-The framework is designed around a **parallel-first execution strategy**.
+The framework follows a **parallel-first execution strategy**.
 
 Most tests should run in parallel because this provides faster feedback.
 
-Only tests that genuinely require serial execution are marked with:
+Only tests that genuinely require controlled execution are marked with:
 
-```ts
+```text
 @serial
 ```
 
@@ -495,11 +636,11 @@ The tag identifies the test as belonging to the serial execution group.
 
 ### Important
 
-The `@serial` tag **does not itself make Playwright run the test serially**.
+The `@serial` tag **does not itself make Playwright execute the test serially**.
 
-It is a classification/tag.
+It is simply a classification/tag.
 
-The npm script controls the actual execution behaviour:
+The npm script controls the execution behaviour:
 
 ```bash
 npx playwright test --workers=1 --grep @serial
@@ -507,8 +648,8 @@ npx playwright test --workers=1 --grep @serial
 
 This:
 
-1. Selects tests tagged `@serial`
-2. Runs them using one Playwright worker
+1. Selects tests tagged `@serial`.
+2. Runs them using one Playwright worker.
 
 ---
 
@@ -516,7 +657,7 @@ This:
 
 Serial execution should be used sparingly.
 
-It is appropriate when tests genuinely depend on shared state or when running multiple tests concurrently could cause interference.
+It is appropriate when tests genuinely interact with shared backend state and concurrent execution could cause interference.
 
 For example:
 
@@ -533,9 +674,7 @@ Test B
 Depends on that state
 ```
 
-These tests may need controlled execution.
-
-However, making the entire test suite serial is generally undesirable because it:
+Making the entire suite serial is generally undesirable because it:
 
 * Slows execution
 * Reduces parallelism
@@ -593,7 +732,7 @@ Therefore:
 npm test
 ```
 
-is the project's standard command for executing the complete suite.
+is the project's standard command for executing the complete framework suite.
 
 ---
 
@@ -637,12 +776,15 @@ Both `npm` and `npx` are useful, but they serve different purposes.
 
 ## Use npm for Project Commands
 
-Use npm when running commands that have been defined by the project:
+Use npm when running commands defined by the project:
 
 ```bash
 npm test
+
 npm run test:parallel
+
 npm run test:serial
+
 npm run report
 ```
 
@@ -652,7 +794,7 @@ These commands represent the framework's standard execution strategy.
 
 ## Use npx for Direct Playwright Commands
 
-Use `npx` when you want to invoke Playwright directly and supply custom options:
+Use `npx` when invoking Playwright directly with custom options:
 
 ```bash
 npx playwright test
@@ -670,7 +812,7 @@ or:
 npx playwright test --project=chromium
 ```
 
-### Simple rule
+### Simple Rule
 
 ```text
 npm
@@ -680,6 +822,156 @@ npm
 npx
  │
  └── Run Playwright directly with custom options
+```
+
+---
+
+# Setup
+
+The project can be run:
+
+1. Locally on a developer machine
+2. In GitHub Codespaces
+3. In GitHub Actions
+
+The application and test commands remain consistent across environments.
+
+---
+
+# Local Development Setup
+
+## Prerequisites
+
+The project requires:
+
+* Node.js 24.x
+* npm
+* Git
+
+Check the installed versions:
+
+```bash
+node --version
+
+npm --version
+
+git --version
+```
+
+Node.js can be downloaded from:
+
+https://nodejs.org
+
+Alternatively, use `nvm`:
+
+```bash
+nvm install 24
+
+nvm use 24
+```
+
+---
+
+# Clone the Repository
+
+To run the project locally:
+
+```bash
+git clone https://github.com/JFSoftwareServices/playwright-ts-automation.git
+
+cd playwright-ts-automation
+```
+
+---
+
+# Install Dependencies
+
+Install the project dependencies:
+
+```bash
+npm install
+```
+
+Install Playwright browsers and required Linux system dependencies:
+
+```bash
+npx playwright install --with-deps
+```
+
+Create a local `.env` file containing the required environment variables.
+
+The required variables are documented in `.env.example`.
+
+---
+
+# GitHub Codespaces
+
+GitHub Codespaces provides a cloud-based development environment for working with the repository without requiring the project to be installed directly on a local machine.
+
+## Open the Repository in Codespaces
+
+Open the GitHub repository and select:
+
+**Code → Codespaces → Create codespace on main**
+
+The repository is automatically available inside the Codespace, so no `git clone` is required.
+
+Once the Codespace starts, verify Node.js and npm:
+
+```bash
+node --version
+
+npm --version
+```
+
+Then install dependencies:
+
+```bash
+npm install
+```
+
+Install Playwright browsers and required Linux dependencies:
+
+```bash
+npx playwright install --with-deps
+```
+
+Create the required `.env` file for local Codespace execution using the values documented in `.env.example`.
+
+---
+
+# Why Use `--with-deps`?
+
+Codespaces normally run on Linux.
+
+The command:
+
+```bash
+npx playwright install
+```
+
+downloads the Playwright browser binaries but does not necessarily install all operating-system libraries required by those browsers.
+
+For Codespaces, containers and CI environments, use:
+
+```bash
+npx playwright install --with-deps
+```
+
+This installs the Playwright browsers together with the required Linux system dependencies.
+
+If you encounter an error such as:
+
+```text
+error while loading shared libraries:
+
+libatk-1.0.so.0: cannot open shared object file
+```
+
+run:
+
+```bash
+npx playwright install --with-deps
 ```
 
 ---
@@ -694,21 +986,13 @@ Recommended:
 npm test
 ```
 
-This uses the framework's parallel-first strategy and then runs serial tests.
-
-You can also run Playwright directly:
-
-```bash
-npx playwright test
-```
-
-However, `npm test` is preferred when you want the framework's explicit parallel/serial execution strategy.
+This uses the framework's parallel-first execution strategy and then executes serial tests.
 
 ---
 
 # Run a Single Test File
 
-Example:
+Login tests:
 
 ```bash
 npx playwright test tests/rahulshetty/login.spec.ts
@@ -748,7 +1032,7 @@ For example:
 npx playwright test -g "removes item from cart"
 ```
 
-Playwright will run tests whose titles match the supplied expression.
+Playwright runs tests whose titles match the supplied expression.
 
 ---
 
@@ -760,7 +1044,7 @@ Run serial tests:
 npx playwright test --grep @serial
 ```
 
-Run all non-serial tests:
+Run non-serial tests:
 
 ```bash
 npx playwright test --grep-invert @serial
@@ -794,6 +1078,8 @@ npx playwright test --project=firefox
 npx playwright test --project=webkit
 ```
 
+The framework is configured for cross-browser execution using Playwright browser projects.
+
 ---
 
 # Run a Test File on a Specific Browser
@@ -820,23 +1106,23 @@ npx playwright test tests/rahulshetty/login.spec.ts --project=webkit
 
 # Run in Headed Mode
 
-To see the browser while the tests are executing:
+To see the browser while tests are executing:
 
 ```bash
 npx playwright test --headed
 ```
 
-For a specific test:
+For an individual test:
 
 ```bash
 npx playwright test tests/rahulshetty/login.spec.ts --headed
 ```
 
-On a normal local desktop with a display, `--headed` works directly.
+Headed execution normally requires a graphical display.
 
 ---
 
-## Headed Mode in Codespaces and CI
+# Headed Mode in Codespaces and CI
 
 Codespaces and many CI environments do not provide a graphical display server.
 
@@ -852,13 +1138,13 @@ may result in:
 Missing X server or $DISPLAY
 ```
 
-On Linux environments where Xvfb is available, headed execution can be run using:
+For normal Codespaces and CI execution, headless mode is recommended.
+
+Where Xvfb is available, headed execution can be run using:
 
 ```bash
 xvfb-run npx playwright test --headed
 ```
-
-For normal Codespaces and CI execution, headless mode is recommended.
 
 ---
 
@@ -894,13 +1180,13 @@ To see which tests Playwright discovers:
 npx playwright test --list
 ```
 
-To list only serial tests:
+List only serial tests:
 
 ```bash
 npx playwright test --list --grep @serial
 ```
 
-To list non-serial tests:
+List non-serial tests:
 
 ```bash
 npx playwright test --list --grep-invert @serial
@@ -910,13 +1196,49 @@ npx playwright test --list --grep-invert @serial
 
 # Run with One Worker
 
-For debugging concurrency or test-isolation issues:
+For debugging concurrency and test-isolation issues:
 
 ```bash
 npx playwright test --workers=1
 ```
 
 This is useful for investigating whether tests behave differently when executed sequentially.
+
+---
+
+# Retries
+
+The framework is configured to use retries in CI while avoiding automatic retries during normal local development.
+
+For example:
+
+```ts
+retries: process.env.CI ? 2 : 0
+```
+
+This means:
+
+```text
+Local
+  └── 0 retries
+
+CI
+  └── Up to 2 retries
+```
+
+Retries can also be enabled locally when investigating intermittent failures:
+
+```bash
+npx playwright test --retries=2
+```
+
+For example:
+
+```bash
+npx playwright test tests/rahulshetty/login.spec.ts --retries=2
+```
+
+Retries should not be used to hide genuine test failures or poor test synchronization.
 
 ---
 
@@ -949,81 +1271,6 @@ You can also run it directly:
 ```bash
 npx playwright show-report
 ```
-
----
-
-# Test Isolation Strategy
-
-The framework aims to keep tests independent wherever possible.
-
-## Browser-Level Isolation
-
-Playwright creates an isolated browser context for each test.
-
-This provides isolation for browser state such as:
-
-* Cookies
-* Local storage
-* Session state
-* Pages
-
----
-
-## Backend-Level State
-
-Browser isolation does not isolate server-side application data.
-
-For example:
-
-```text
-Test A
-  │
-  └── Adds product to Cart
-
-Test B
-  │
-  └── Expects Cart to be empty
-```
-
-If both tests use the same backend account, the tests may still interact with the same server-side cart.
-
-For this reason, state-changing tests should use API setup and cleanup where practical.
-
----
-
-# Hybrid API/UI Testing Strategy
-
-The framework follows a hybrid testing approach.
-
-```text
-                         Test
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-              ▼                       ▼
-             API                      UI
-              │                       │
-       ┌──────┼──────┐        ┌───────┼────────┐
-       │      │      │        │       │        │
-       ▼      ▼      ▼        ▼       ▼        ▼
-     Auth   Setup  Cleanup   Journey Behaviour Assertions
-```
-
-### API is preferred for:
-
-* Authentication
-* Test data setup
-* Test data cleanup
-* Preparing backend state
-
-### UI is preferred for:
-
-* User journeys
-* UI behaviour
-* Navigation
-* User-visible validation
-
-This keeps UI tests focused on what the user actually experiences while avoiding unnecessary UI-based setup.
 
 ---
 
@@ -1066,7 +1313,7 @@ await page.locator('.card-body')
 
 # Web-First Assertions
 
-The framework prefers Playwright's auto-waiting assertions.
+The framework prefers Playwright's web-first assertions.
 
 Examples:
 
@@ -1088,58 +1335,101 @@ await page.waitForTimeout(2000);
 
 should generally be avoided.
 
-Web-first assertions provide better synchronization and reduce unnecessary waiting.
+Condition-based synchronization provides more reliable tests and avoids unnecessary delays.
 
 ---
 
-## CI/CD – GitHub Actions
+# Test Data Management
+
+Test data is separated from test implementation.
+
+For example:
+
+```text
+test-data/
+├── order-data.ts
+└── country-search-data.ts
+```
+
+This keeps test data reusable and prevents business data from being duplicated throughout test cases.
+
+Example:
+
+```ts
+await pages.dashboardPage.addProductToCart(
+    orderTestData.productName
+);
+```
+
+---
+
+# CI/CD – GitHub Actions
 
 The framework uses **GitHub Actions** to automatically execute the Playwright test suite on:
 
 * Pushes to the `main` branch
 * Pull requests targeting `main`
 
-### Pipeline Overview
+## Pipeline Overview
 
 ```text
 GitHub Push / Pull Request
+
           │
           ▼
+
     Checkout Code
+
           │
           ▼
+
     Setup Node.js 24
+
           │
           ▼
-     npm ci
+
+       npm ci
+
           │
           ▼
+
 Install Playwright Browsers
+      and Dependencies
+
           │
           ▼
+
  Run Parallel-Safe Tests
+
           │
           ▼
+
  Run Account-Mutating Tests
         Serially
+
           │
           ▼
+
  Upload Playwright Report
 ```
 
-### Test Execution Strategy
+---
+
+# CI Test Execution Strategy
 
 The CI pipeline separates tests according to their ability to run safely in parallel.
 
-**Parallel-safe tests**
+## Parallel-Safe Tests
 
 ```bash
 npm run test:parallel
 ```
 
-Runs tests excluding the `@serial` tag and allows Playwright's configured workers to execute them concurrently.
+Runs tests excluding the `@serial` tag.
 
-**Account-mutating tests**
+These tests can use Playwright's configured worker count.
+
+## Account-Mutating Tests
 
 ```bash
 npm run test:serial
@@ -1147,13 +1437,17 @@ npm run test:serial
 
 Runs tests tagged `@serial` using a single worker.
 
-This separation helps prevent tests that modify shared backend state, such as carts, orders, or account data, from interfering with one another.
+This reduces the risk of concurrent tests interfering with shared backend account state.
 
-### Test Credentials
+---
 
-Credentials are stored as **GitHub Actions Secrets** rather than committed to source control.
+# CI Environment Variables
 
-The workflow injects them into the test process:
+The CI workflow supplies environment variables to the Playwright test process.
+
+Sensitive credentials are stored as **GitHub Actions Repository Secrets**.
+
+For example:
 
 ```yaml
 env:
@@ -1161,11 +1455,27 @@ env:
   TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 ```
 
-The repository therefore contains no hard-coded test credentials.
+The test framework accesses these through:
 
-### Playwright HTML Report
+```ts
+process.env.TEST_USER_EMAIL
+process.env.TEST_USER_PASSWORD
+```
 
-The Playwright HTML report is uploaded as a GitHub Actions artifact after the test run:
+The application URL is non-sensitive configuration and can be supplied by the workflow:
+
+```yaml
+env:
+  BASE_URL: https://rahulshettyacademy.com
+```
+
+This allows the same source code to run in CI without requiring a committed `.env` file.
+
+---
+
+# Playwright HTML Report in CI
+
+The Playwright HTML report is uploaded as a GitHub Actions artifact after the test run.
 
 ```yaml
 - uses: actions/upload-artifact@v4
@@ -1176,13 +1486,15 @@ The Playwright HTML report is uploaded as a GitHub Actions artifact after the te
     retention-days: 14
 ```
 
-`if: always()` ensures that the report is uploaded even when one or more tests fail.
+`if: always()` ensures that the report is uploaded even when tests fail.
 
-The report is retained for **14 days** and can be downloaded from the workflow run in GitHub Actions.
+The report is retained for **14 days** and can be accessed from the corresponding GitHub Actions workflow run.
 
-### Workflow
+---
 
-The CI workflow is located at:
+# CI Workflow
+
+The workflow is located at:
 
 ```text
 .github/
@@ -1190,24 +1502,27 @@ The CI workflow is located at:
     └── playwright.yml
 ```
 
-The workflow performs the following:
+The workflow:
 
 1. Checks out the repository.
 2. Configures Node.js 24.
-3. Uses npm's lockfile-based installation with `npm ci`.
+3. Installs dependencies using `npm ci`.
 4. Installs Playwright browsers and required system dependencies.
 5. Executes parallel-safe tests.
 6. Executes account-mutating tests serially.
-7. Uploads the Playwright HTML report regardless of test outcome.
+7. Uploads the Playwright HTML report.
 
-### CI Design Principles
+---
+
+# CI Design Principles
 
 The pipeline follows several principles:
 
 * **Reproducible builds** — `npm ci` installs dependencies from `package-lock.json`.
-* **Secure configuration** — credentials are supplied through GitHub Secrets.
-* **Parallel execution** — independent tests execute concurrently to reduce feedback time.
-* **Controlled shared state** — tests that mutate shared account data can be isolated through serial execution.
+* **Secure configuration** — sensitive credentials are supplied through GitHub Secrets.
+* **Environment separation** — local configuration is supplied through `.env`, while CI configuration is supplied by the workflow environment.
+* **Parallel execution** — independent tests execute concurrently.
+* **Controlled shared state** — account-mutating tests can be isolated through serial execution.
 * **Failure diagnostics** — Playwright reports are retained even when tests fail.
 * **Automated quality gates** — tests execute automatically on pushes and pull requests.
 
@@ -1221,7 +1536,8 @@ If you see an error similar to:
 
 ```text
 error while loading shared libraries:
-libatk-1.0.so.0
+
+libatk-1.0.so.0: cannot open shared object file
 ```
 
 run:
@@ -1243,16 +1559,17 @@ For example:
 ```text
 Test A → Adds product to cart
 
-Test B → Expects empty cart
+Test B → Expects cart to be empty
 ```
 
 Although Test A and Test B have isolated browser contexts, they may still use the same backend account.
 
 Consider:
 
-* API cleanup
 * Separate test accounts
 * Independent test data
+* API-based setup where appropriate
+* API-based cleanup where appropriate
 * Serial execution where genuinely required
 
 Do not automatically make the entire suite serial.
@@ -1274,6 +1591,7 @@ Do not automatically make the entire suite serial.
 | Run serial-tagged tests      | `npx playwright test --grep @serial`        |
 | Exclude serial tests         | `npx playwright test --grep-invert @serial` |
 | Run with one worker          | `npx playwright test --workers=1`           |
+| Run with retries             | `npx playwright test --retries=2`           |
 | Chromium                     | `npx playwright test --project=chromium`    |
 | Firefox                      | `npx playwright test --project=firefox`     |
 | WebKit                       | `npx playwright test --project=webkit`      |
@@ -1312,9 +1630,9 @@ The framework uses a **parallel-first execution model**.
                  └─────────────────────┘
 ```
 
-The objective is to maximise test execution speed while allowing genuinely state-dependent tests to execute safely.
+The objective is to maximise execution speed while allowing genuinely state-dependent tests to execute in a controlled manner.
 
-The `@serial` tag therefore represents an **explicit exception to the normal parallel execution model**, rather than making serial execution the default for the entire test suite.
+The `@serial` tag therefore represents an **explicit exception to the normal parallel execution model**, rather than making serial execution the default for the entire suite.
 
 ---
 
