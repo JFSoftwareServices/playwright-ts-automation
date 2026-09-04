@@ -1,10 +1,4 @@
 import { test, expect } from '../../fixtures/test';
-import { LoginPage } from '../../pages/LoginPage';
-import { HeaderComponent } from '../../pages/Components/HeaderComponent';
-import {
-    validLoginData,
-    invalidLoginData
-} from '../../test-data/login-data';
 
 // Override global authenticated state to test the UI login flow.
 test.use({
@@ -15,31 +9,33 @@ test.use({
 });
 
 test.describe('Login', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/client');
+    // LoginPage.goTo() redirects non-authenticated users to the login page.
+    test.beforeEach(async ({ pages }) => {
+        await pages.loginPage.goTo();
     });
 
-    test('logs in successfully with valid credentials', async ({ page }) => {
-        const loginPage = new LoginPage(page);
+    test('logs in successfully with valid credentials', async ({ pages }) => {
 
-        await loginPage.login(
-            validLoginData.username,
-            validLoginData.password
-        );
+        const username = process.env.TEST_USER_EMAIL;
+        const password = process.env.TEST_USER_PASSWORD;
 
-        const headerComponent = new HeaderComponent(page);
+        if (!username || !password) {
+            throw new Error(
+                'TEST_USER_EMAIL and TEST_USER_PASSWORD must be configured'
+            );
+        }
 
-        await headerComponent.verifyLoggedIn();
+        await pages.loginPage.login(username, password);
+
+        await pages.headerComponent.verifyLoggedIn();
     });
 
-    test('shows an error with invalid credentials', async ({ page }) => {
-        const loginPage = new LoginPage(page);
+    test('shows an error with invalid credentials', async ({ page, pages }) => {
 
-        await loginPage.login(
-            invalidLoginData.username,
-            invalidLoginData.password
-        );
+        const username = "invalid@example.com";
+        const password = "invalidpassword";
+
+        await pages.loginPage.login(username, password);
 
         await expect(
             page.getByRole('alert', {

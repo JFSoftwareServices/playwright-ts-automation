@@ -1,5 +1,3 @@
-// fixtures/test.ts
-
 import { test as base, expect, APIRequestContext } from '@playwright/test';
 import { Pages } from '../pages/Pages';
 
@@ -15,7 +13,7 @@ export const test = base.extend<Fixtures>({
 
     api: async ({ playwright }, use) => {
         const api = await playwright.request.newContext({
-            baseURL: 'https://rahulshettyacademy.com',
+            baseURL: process.env.BASE_URL,
         });
 
         await use(api);

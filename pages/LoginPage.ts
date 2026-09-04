@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 export class LoginPage {
     readonly page: Page;
@@ -23,9 +23,9 @@ export class LoginPage {
     }
 
     async goTo(): Promise<void> {
-        await this.page.goto(
-            'https://rahulshettyacademy.com/client/'
-        );
+        await this.page.goto('/client', {
+            waitUntil: 'domcontentloaded',
+        });
     }
 
     async login(

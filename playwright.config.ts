@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
@@ -59,7 +60,7 @@ export default defineConfig({
 
   use: {
     // Base URL for relative navigation in tests.
-    baseURL: 'https://rahulshettyacademy.com',
+    baseURL: process.env.BASE_URL,
 
     // Reuse the authenticated state created by globalSetup.
     storageState: 'storageState.json',

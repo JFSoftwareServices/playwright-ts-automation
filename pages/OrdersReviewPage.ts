@@ -1,7 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 
 export class OrdersReviewPage {
-    readonly page: Page;
     readonly countryField: Locator;
     readonly countryResultsDropdown: Locator;
     readonly emailIdLabel: Locator;
@@ -10,7 +9,6 @@ export class OrdersReviewPage {
     readonly orderIdLabel: Locator;
 
     constructor(page: Page) {
-        this.page = page;
         this.countryField = page.getByPlaceholder('Select Country');
         this.countryResultsDropdown = page.locator('.ta-results');
         this.emailIdLabel = page.locator('.user__name label');

@@ -1,5 +1,4 @@
 import { chromium, request } from '@playwright/test';
-import { validLoginData } from './test-data/login-data';
 import { AuthApi } from './api/AuthApi';
 
 const STORAGE_STATE_PATH = 'storageState.json';
@@ -10,21 +9,29 @@ const STORAGE_STATE_PATH = 'storageState.json';
  */
 async function globalSetup() {
     const apiContext = await request.newContext({
-        baseURL: 'https://rahulshettyacademy.com',
+        baseURL: process.env.BASE_URL,
     });
 
     const authApi = new AuthApi();
+    const username = process.env.TEST_USER_EMAIL;
+    const password = process.env.TEST_USER_PASSWORD;
+
+    if (!username || !password) {
+        throw new Error(
+            'TEST_USER_EMAIL and TEST_USER_PASSWORD must be configured'
+        );
+    }
 
     const { token, userId } = await authApi.login(
         apiContext,
-        validLoginData.username,
-        validLoginData.password
+        username,
+        password
     );
 
     const browser = await chromium.launch();
 
     const context = await browser.newContext({
-        baseURL: 'https://rahulshettyacademy.com',
+        baseURL: process.env.BASE_URL,
     });
 
     await context.addInitScript(

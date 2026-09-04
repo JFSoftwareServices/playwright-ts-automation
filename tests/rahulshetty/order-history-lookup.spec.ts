@@ -3,9 +3,10 @@ import { orderTestData } from '../../test-data/order-data';
 import { countrySearchData } from '../../test-data/country-search-data';
 
 test.describe('Journey: Order History Lookup', { tag: '@serial' }, () => {
-    // Authentication is handled by globalSetup.
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/client/#/dashboard/dash');
+    // Since authentication is handled by globalSetup, 
+    // LoginPage.goTo() redirects authenticated users to the dashboard.
+    test.beforeEach(async ({ pages }) => {
+        await pages.loginPage.goTo();
     });
 
     test('finds a completed order in order history', async ({ pages }) => {
