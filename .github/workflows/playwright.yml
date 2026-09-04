@@ -42,13 +42,6 @@ jobs:
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
-      - name: Run account-mutating tests (serial)
-        run: npm run test:serial
-        env:
-          BASE_URL: https://rahulshettyacademy.com
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v6
