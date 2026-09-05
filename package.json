@@ -1,8 +1,8 @@
 {
   "name": "playwright-ts-automation",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "TypeScript + Playwright UI automation framework demonstrating Page Object Model, API-based authentication, and controlled parallel/serial test execution.",
+  "private": true,
   "scripts": {
     "test": "npm run test:parallel && npm run test:serial",
     "test:parallel": "playwright test --grep-invert @serial",
@@ -13,8 +13,8 @@
     "type": "git",
     "url": "git+https://github.com/JFSoftwareServices/playwright-ts-automation.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["playwright", "typescript", "automation", "e2e", "sdet"],
+  "author": "Jide (JFSoftwareServices)",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
