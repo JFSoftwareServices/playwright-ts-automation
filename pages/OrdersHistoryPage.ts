@@ -34,6 +34,10 @@ export class OrdersHistoryPage {
   }
 
   async getOrderId(): Promise<string | null> {
-    return this.orderIdDetails.textContent();
+    const rawText = await this.orderIdDetails.textContent();
+    if (!rawText) {
+      return null;
+    }
+    return rawText.replace(/\|/g, '').trim();
   }
 }
