@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test';
-import { orderTestData } from '../../test-data/order-data'; ``
+import { orderTestData } from '../../test-data/order-data';
 
 test.describe('Journey: Cart Contents and Removal', { tag: '@serial' }, () => {
 
