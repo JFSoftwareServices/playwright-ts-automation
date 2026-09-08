@@ -15,7 +15,9 @@ export class AuthApi {
             },
         });
 
-        expect(response.ok()).toBe(true);
+        if (!response.ok()) {
+            throw new Error(`Login failed with status ${response.status()}: ${await response.text()}`);
+        }
 
         const data = await response.json();
 
