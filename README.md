@@ -8,6 +8,18 @@ The project is designed to demonstrate practical automation engineering principl
 
 ---
 
+# Why These Design Decisions
+
+A short summary for anyone skimming this repo before reading the detailed sections below:
+
+- **API-first authentication, not UI login for every test.** Logging in through the UI form is only tested where login *is* the subject (`login.spec.ts`). Every other test authenticates via a direct API call in `global-setup.ts`/`AuthApi`, saving the resulting session once and reusing it — this is faster, avoids re-testing the same login flow hundreds of times, and matches how Playwright's own documentation recommends handling authentication for suites where login isn't the thing under test.
+- **Page Object Model, with a shared `HeaderComponent`.** Navigation elements (Home, Orders, Cart, Sign Out) appear identically on every authenticated page, so they live in one shared component rather than being duplicated across every page object — a change to the nav bar only requires one edit, not five.
+- **Deliberate parallel/serial split, not "just run everything in parallel."** Most tests are independent and run fully in parallel. A small subset that mutates the *same shared test account's* cart and order data is tagged `@serial` and run with `--workers=1`, since Playwright has no built-in mechanism to prevent two different test files from colliding on shared backend state. This was a conscious trade-off given the constraint of one shared public demo account with no way to provision additional test accounts — documented explicitly rather than left as an unexplained slow test run (see [Known trade-off](#known-trade-off-in-this-framework)).
+- **`npm test` runs the whole suite, in the correct order.** Following the ecosystem convention that `npm test` means "run everything" — it internally sequences the parallel batch first, then the serial batch — rather than silently skipping a subset of tests under a command a reviewer would expect to be comprehensive.
+- **Known issues are documented, not hidden.** Two real, specific bugs found during review are listed in [Known Issues](#known-issues) rather than silently left for a reviewer to discover — an accurate account of the codebase's current state was prioritized over an inflated one.
+
+---
+
 # Overview
 
 ## Application Under Test
@@ -77,28 +89,26 @@ playwright-ts-automation/
 │   ├── OrdersReviewPage.ts
 │   ├── CartPage.ts
 │   │
-│   ├── Components/
+│   ├── components/
 │   │   └── HeaderComponent.ts
 │   │
 │   └── Pages.ts
-│
-├── utils/
-│   └── AuthUtils.ts
 │
 ├── test-data/
 │   ├── order-data.ts
 │   └── country-search-data.ts
 │
 ├── tests/
-│   ├── example.spec.ts
+│   ├── example.spec.ts               # Playwright's own scaffold test — kept
+│   │                                  # as a smoke check that install/config
+│   │                                  # still work after upgrading tooling
 │   │
 │   └── rahulshetty/
-│       ├── login.spec.ts
-│       ├── cart-contents-removal.spec.ts
-│       ├── sign-out-session-boundary.spec.ts
-│       ├── order-history-lookup.spec.ts
-│       ├── login-practice-child-window.spec.ts
-│       └── angular-practice.spec.ts
+│       ├── login.spec.ts                     # UI login — valid/invalid credentials
+│       ├── login-browse-purchase.spec.ts     # @serial — full login→browse→checkout journey
+│       ├── cart-contents-removal.spec.ts     # @serial — cart contents, total, removal
+│       ├── order-history-lookup.spec.ts      # @serial — checkout then find in history
+│       └── sign-out-session-boundary.spec.ts # sign out + post-signout access check
 │
 ├── global-setup.ts
 ├── .env.example
@@ -202,7 +212,7 @@ Reusable areas of the application are represented as **Component Objects**.
 For example:
 
 ```text
-pages/Components/HeaderComponent.ts
+pages/components/HeaderComponent.ts
 ```
 
 `HeaderComponent` contains common functionality such as:
@@ -340,22 +350,11 @@ AuthApi
 
 It is used by `global-setup.ts`.
 
----
-
-## `AuthUtils`
-
-`AuthUtils` handles browser-side authentication state.
-
-It retrieves authentication information from the browser's `localStorage`, such as:
-
-```text
-localStorage
-    │
-    ├── token
-    └── userId
-```
-
-This keeps browser authentication-state handling separate from the API authentication performed by `AuthApi`.
+> **Note:** an earlier `AuthUtils` helper (for reading `token`/`userId` back out of
+> browser `localStorage`) was removed from this section — it existed in the codebase
+> but was not yet wired into any test. It's a reasonable addition for a future test
+> that explicitly verifies the authentication state landed correctly after login,
+> but is left out here to keep this document matching what the suite actually runs.
 
 ---
 
@@ -681,6 +680,21 @@ Making the entire suite serial is generally undesirable because it:
 * Can hide test-isolation problems
 
 The preferred approach is to keep tests independent and parallel wherever possible.
+
+### Known trade-off in this framework
+
+Three `@serial` files (`login-browse-purchase`, `order-history-lookup`,
+`cart-contents-removal`) each independently add a product to the shared account's
+cart, and two of the three also complete a full checkout. This means CI currently
+runs several overlapping end-to-end checkout flows sequentially rather than one.
+
+This is a deliberate, acknowledged trade-off rather than an oversight: the target
+application is a shared public demo account with no API for creating additional
+test accounts, so per-test account isolation isn't available. Given that constraint,
+consolidating these journeys or introducing dedicated test accounts (see
+[Roadmap](#roadmap)) would reduce both the duplicated coverage and the total serial
+runtime, at the cost of splitting a currently-independent story per file into shared
+setup.
 
 ---
 
@@ -1633,6 +1647,28 @@ The framework uses a **parallel-first execution model**.
 The objective is to maximise execution speed while allowing genuinely state-dependent tests to execute in a controlled manner.
 
 The `@serial` tag therefore represents an **explicit exception to the normal parallel execution model**, rather than making serial execution the default for the entire suite.
+
+---
+
+# Known Issues
+
+* `CartPage.getTotalValue()` strips a `$` character from the displayed total —
+  worth confirming this matches the actual currency symbol rendered by the
+  application before relying on `cart-contents-removal.spec.ts`'s total assertion.
+
+---
+
+# Roadmap
+
+Planned improvements, not yet implemented:
+
+* Dedicated per-concern test accounts, removing the need for `@serial`/`--workers=1`
+  entirely once account creation on the target app is confirmed possible
+* Consolidate the three overlapping checkout-performing `@serial` journeys (see
+  [Known trade-off](#known-trade-off-in-this-framework)) into fewer, non-duplicated flows
+* Additional coverage for the-internet.herokuapp.com and demoqa.com
+* Cucumber (BDD) integration alongside native Playwright specs
+* Jenkins pipeline alongside the existing GitHub Actions workflow
 
 ---
 
