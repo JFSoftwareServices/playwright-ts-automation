@@ -2,19 +2,13 @@ import { test, expect } from '../../../fixtures/test';
 import { AuthApi } from '../../../api/AuthApi';
 
 test.describe('Login - API', () => {
-  test('returns a valid token for correct credentials', async ({ api }) => {
+  test('returns a valid token for correct credentials', async ({ api, credentials }) => {
     const authApi = new AuthApi();
-    const username = process.env.TEST_USER_EMAIL;
-    const password = process.env.TEST_USER_PASSWORD;
-
-    if (!username || !password) {
-      throw new Error('TEST_USER_EMAIL and TEST_USER_PASSWORD must be set');
-    }
     
     const { token, userId } = await authApi.login(
       api,
-      username,
-      password
+      credentials.username,
+      credentials.password
     );
 
     expect(token).toMatch(/^[\w-]+\.[\w-]+\.[\w-]+$/);

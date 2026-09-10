@@ -14,18 +14,9 @@ test.describe('Login', () => {
         await pages.loginPage.goTo();
     });
 
-    test('logs in successfully with valid credentials', async ({ pages }) => {
-
-        const username = process.env.TEST_USER_EMAIL;
-        const password = process.env.TEST_USER_PASSWORD;
-
-        if (!username || !password) {
-            throw new Error(
-                'TEST_USER_EMAIL and TEST_USER_PASSWORD must be configured'
-            );
-        }
-
-        await pages.loginPage.login(username, password);
+    test('logs in successfully with valid credentials', async ({ pages, credentials    
+     }) => {
+        await pages.loginPage.login(credentials.username, credentials.password);
 
         await pages.headerComponent.verifyLoggedIn();
     });

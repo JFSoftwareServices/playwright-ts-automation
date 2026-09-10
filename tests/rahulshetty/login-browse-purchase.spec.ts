@@ -11,15 +11,8 @@ test.describe('Journey: Login → Browse → Purchase', { tag: '@serial' }, () =
         await pages.loginPage.goTo();
     });
 
-    test('logs in, adds a product to cart, and completes checkout', async ({ pages }) => {
-        const username = process.env.TEST_USER_EMAIL;
-        const password = process.env.TEST_USER_PASSWORD;
-
-        if (!username || !password) {
-            throw new Error(
-                'TEST_USER_EMAIL and TEST_USER_PASSWORD must be configured'
-            );
-        }
+    test('logs in, adds a product to cart, and completes checkout', async ({ pages, credentials}) => {
+        const { username, password } = credentials;
 
         const { productName } = orderTestData;
         const { countryCode, countryName } = countrySearchData;

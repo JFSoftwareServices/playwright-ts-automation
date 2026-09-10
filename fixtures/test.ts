@@ -4,6 +4,7 @@ import { Pages } from '../pages/Pages';
 type Fixtures = {
     pages: Pages;
     api: APIRequestContext;
+    credentials: { username: string; password: string };
 };
 
 export const test = base.extend<Fixtures>({
@@ -19,6 +20,17 @@ export const test = base.extend<Fixtures>({
         await use(api);
 
         await api.dispose();
+    },
+
+    credentials: async ({}, use) => {
+        const username = process.env.TEST_USER_EMAIL;
+        const password = process.env.TEST_USER_PASSWORD;
+
+        if (!username || !password) {
+            throw new Error('TEST_USER_EMAIL and TEST_USER_PASSWORD must be configured');
+        }
+
+        await use({ username, password });
     },
 });
 
