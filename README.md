@@ -16,7 +16,6 @@ A short summary for anyone skimming this repo before reading the detailed sectio
 - **Page Object Model, with a shared `HeaderComponent`.** Navigation elements (Home, Orders, Cart, Sign Out) appear identically on every authenticated page, so they live in one shared component rather than being duplicated across every page object — a change to the nav bar only requires one edit, not five.
 - **Deliberate parallel/serial split, not "just run everything in parallel."** Most tests are independent and run fully in parallel. A small subset that mutates the *same shared test account's* cart and order data is tagged `@serial` and run with `--workers=1`, since Playwright has no built-in mechanism to prevent two different test files from colliding on shared backend state. This was a conscious trade-off given the constraint of one shared public demo account with no way to provision additional test accounts — documented explicitly rather than left as an unexplained slow test run (see [Known trade-off](#known-trade-off-in-this-framework)).
 - **`npm test` runs the whole suite, in the correct order.** Following the ecosystem convention that `npm test` means "run everything" — it internally sequences the parallel batch first, then the serial batch — rather than silently skipping a subset of tests under a command a reviewer would expect to be comprehensive.
-- **Known issues are documented, not hidden.** Two real, specific bugs found during review are listed in [Known Issues](#known-issues) rather than silently left for a reviewer to discover — an accurate account of the codebase's current state was prioritized over an inflated one.
 
 ---
 
@@ -99,9 +98,8 @@ playwright-ts-automation/
 │   └── country-search-data.ts
 │
 ├── tests/
-│   ├── example.spec.ts               # Playwright's own scaffold test — kept
-│   │                                  # as a smoke check that install/config
-│   │                                  # still work after upgrading tooling
+│       └── api/
+│           └── login.spec.ts                 # API-level login — valid token / rejected credentials
 │   │
 │   └── rahulshetty/
 │       ├── login.spec.ts                     # UI login — valid/invalid credentials
@@ -349,12 +347,6 @@ AuthApi
 ```
 
 It is used by `global-setup.ts`.
-
-> **Note:** an earlier `AuthUtils` helper (for reading `token`/`userId` back out of
-> browser `localStorage`) was removed from this section — it existed in the codebase
-> but was not yet wired into any test. It's a reasonable addition for a future test
-> that explicitly verifies the authentication state landed correctly after login,
-> but is left out here to keep this document matching what the suite actually runs.
 
 ---
 
@@ -1650,14 +1642,6 @@ The `@serial` tag therefore represents an **explicit exception to the normal par
 
 ---
 
-# Known Issues
-
-* `CartPage.getTotalValue()` strips a `$` character from the displayed total —
-  worth confirming this matches the actual currency symbol rendered by the
-  application before relying on `cart-contents-removal.spec.ts`'s total assertion.
-
----
-
 # Roadmap
 
 Planned improvements, not yet implemented:
@@ -1666,9 +1650,6 @@ Planned improvements, not yet implemented:
   entirely once account creation on the target app is confirmed possible
 * Consolidate the three overlapping checkout-performing `@serial` journeys (see
   [Known trade-off](#known-trade-off-in-this-framework)) into fewer, non-duplicated flows
-* Additional coverage for the-internet.herokuapp.com and demoqa.com
-* Cucumber (BDD) integration alongside native Playwright specs
-* Jenkins pipeline alongside the existing GitHub Actions workflow
 
 ---
 
