@@ -14,8 +14,7 @@ test.describe('Login', () => {
         await pages.loginPage.goTo();
     });
 
-    test('logs in successfully with valid credentials', async ({ pages, credentials    
-     }) => {
+    test('logs in successfully with valid credentials', async ({ pages, credentials }) => {
         await pages.loginPage.login(credentials.username, credentials.password);
 
         await pages.headerComponent.verifyLoggedIn();
