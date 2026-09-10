@@ -4,6 +4,7 @@
   "description": "TypeScript + Playwright UI automation framework demonstrating Page Object Model, API-based authentication, and controlled parallel/serial test execution.",
   "private": true,
   "scripts": {
+    "check": "tsc --noEmit",
     "test": "npm run test:parallel && npm run test:serial",
     "test:parallel": "playwright test --grep-invert @serial",
     "test:serial": "playwright test --workers=1 --grep @serial",
