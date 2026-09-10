@@ -98,15 +98,14 @@ playwright-ts-automation/
 │   └── country-search-data.ts
 │
 ├── tests/
-│       └── api/
-│           └── login.spec.ts                 # API-level login — valid token / rejected credentials
-│   │
 │   └── rahulshetty/
 │       ├── login.spec.ts                     # UI login — valid/invalid credentials
 │       ├── login-browse-purchase.spec.ts     # @serial — full login→browse→checkout journey
 │       ├── cart-contents-removal.spec.ts     # @serial — cart contents, total, removal
 │       ├── order-history-lookup.spec.ts      # @serial — checkout then find in history
-│       └── sign-out-session-boundary.spec.ts # sign out + post-signout access check
+│       ├── sign-out-session-boundary.spec.ts # sign out + post-signout access check
+│       └── api/
+│           └── login.spec.ts                 # API-level login — valid token / rejected credentials
 │
 ├── global-setup.ts
 ├── .env.example
